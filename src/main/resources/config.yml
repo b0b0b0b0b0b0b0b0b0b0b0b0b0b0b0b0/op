@@ -75,6 +75,8 @@ blocked‑commands:
   - axiompaperdebug
   - axiompapershutdown
   - antipopup
+  - advancement
+  - advancements
   - protocol
   - bossbar
   - "//pos"
