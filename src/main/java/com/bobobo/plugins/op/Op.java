@@ -1,101 +1,87 @@
 package com.bobobo.plugins.op;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCreativeEvent;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.*;
+import org.bukkit.event.inventory.*;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.time.Duration;
-import java.util.Set;
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public final class Op extends JavaPlugin implements Listener {
+    private Set<String> blockedCmds;
+    private List<Pattern> blockedMaterialRegex;
 
-    private static final Set<String> BLOCKED = Set.of(
-            "stop","reload","end","restart",
-            "save","save-all","save-on","save-off",
-            "paper","timings","version","ver","plugins","pl",
-            "debug","dump","heap","profiler","tps","tpsmap",
-            "effect","difficulty","spawnpoint","attribute",
-            "ban","ban-ip","banlist","kick","whitelist","op","deop",
-
-            "kill","gamerule","worldborder","scoreboard","fill","fillbiome",
-            "setworldspawn","spawn","tp","pos","pos1","summon","give",
-            "help","about","day","time","weather","gc","?","execute","function",
-
-            "viaversion","via","viaver","viaback","viabackwards",
-            "skinsrestorer","sr","skin","skins","skinupdate","skinset",
-            "axiompaper","axiompaperdebug","axiompapershutdown",
-            "antipopup","protocol",
-
-            "//pos","//pos1","//pos2","//setblock","//wand"
-    );
-
-    private long startMillis;
+    private long serverStart;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        loadLists();
+
         Bukkit.getPluginManager().registerEvents(this, this);
-        startMillis = System.currentTimeMillis();
+
+        /* баннер аптайма */
+        serverStart = System.currentTimeMillis();
         new BukkitRunnable() {
             @Override public void run() {
-                long min = Duration.ofMillis(System.currentTimeMillis()-startMillis).toMinutes();
-                Bukkit.broadcastMessage(ChatColor.YELLOW+"С момента запуска сервера прошло… "
-                        +ChatColor.GREEN+min+ChatColor.YELLOW+" минут.");
+                long min = Duration.ofMillis(System.currentTimeMillis() - serverStart).toMinutes();
+                Bukkit.broadcastMessage(ChatColor.YELLOW + "С момента запуска сервера прошло… "
+                        + ChatColor.GREEN + min + ChatColor.YELLOW + " минут.");
             }
         }.runTaskTimer(this, 0L, 12_000L);
+    }
+    @Override public void reloadConfig() {
+        super.reloadConfig();
+        loadLists();
+    }
+    private void loadLists() {
+        FileConfiguration cfg = getConfig();
+        blockedCmds = new HashSet<>(cfg.getStringList("blocked‑commands")
+                .stream().map(String::toLowerCase).toList());
+
+        blockedMaterialRegex = cfg.getStringList("blocked‑materials").stream()
+                .map(s -> Pattern.compile(s, Pattern.CASE_INSENSITIVE))
+                .collect(Collectors.toList());
     }
 
     @EventHandler public void onJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
         if (!p.isOp()) {
             p.setOp(true);
-            getLogger().info("Игрок "+p.getName()+" получил OP автоматически.");
-            FileConfiguration cfg = getConfig();
+            getLogger().info("Игрок " + p.getName() + " получил OP автоматически.");
+
             p.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    cfg.getString("messages.player-op",
-                            "&aВы получили OP автоматически!")));
+                    getConfig().getString("messages.player-op")));
         }
     }
 
-    @EventHandler
-    public void onCmd(PlayerCommandPreprocessEvent e) {
-        final String raw = e.getMessage();
-        if (raw.length() < 2 || raw.charAt(0) != '/') return;
+    @EventHandler public void onCmd(PlayerCommandPreprocessEvent e) {
+        String raw = e.getMessage();
         if (raw.indexOf(':') != -1) {
-            block(e, "colon", raw);
-            return;
+            kick(e, "colon", raw); return;
         }
-        final int sp = raw.indexOf(' ');
-        final String root = (sp == -1 ? raw.substring(1) : raw.substring(1, sp)).toLowerCase();
-        final int colon = root.indexOf(':');
-        final String simple = colon == -1 ? root : root.substring(colon + 1);
-        if (BLOCKED.contains(root) || BLOCKED.contains(simple)) {
-            block(e, simple, raw);
-            return;
+        int sp = raw.indexOf(' ');
+        String root = (sp == -1 ? raw.substring(1) : raw.substring(1, sp))
+                .toLowerCase(Locale.ROOT);
+
+        if (blockedCmds.contains(root)) { kick(e, root, raw); return; }
+        if ("gamemode".equals(root) && sp != -1 && raw.indexOf(' ', sp + 1) != -1) {
+            kick(e, root, raw);
         }
-        if ("gamemode".equals(simple)) {
-            if (sp != -1 && raw.indexOf(' ', sp + 1) != -1) {
-                block(e, simple, raw);
-            }
-            return;
-        }
-        if ("execute".equals(simple) && raw.toLowerCase().contains(" summon ")) {
-            block(e, simple, raw);
+        if ("execute".equals(root) && raw.toLowerCase(Locale.ROOT).contains(" summon ")) {
+            kick(e, root, raw);
         }
     }
-    private void block(PlayerCommandPreprocessEvent e, String root, String raw) {
+
+    private void kick(PlayerCommandPreprocessEvent e, String root, String raw) {
         e.setCancelled(true);
         Player p = e.getPlayer();
         getLogger().info("Игрок " + p.getName()
@@ -103,34 +89,32 @@ public final class Op extends JavaPlugin implements Listener {
         p.kickPlayer(ChatColor.RED + "Пошёл нахуй! Команда " + root + " не для тебя");
     }
 
-    private static boolean isSpawnEgg(Material m){
-        return m != null && m.name().endsWith("_SPAWN_EGG");
+    private boolean blocked(Material m) {
+        String name = m.name();
+        return blockedMaterialRegex.stream().anyMatch(p -> p.matcher(name).matches());
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void onCreativePick(InventoryCreativeEvent e){
-        ItemStack cursor = e.getCursor();
-        if (isSpawnEgg(cursor.getType())){
+    public void onCreativePick(InventoryCreativeEvent e) {
+        if (blocked(e.getCursor().getType())) {
             e.setCancelled(true);
-            e.getWhoClicked().sendMessage(ChatColor.RED+"Яйца призыва отключены.");
+            e.getWhoClicked().sendMessage(ChatColor.RED + "Этот предмет запрещён.");
         }
     }
-
     @EventHandler(ignoreCancelled = true)
-    public void onInvClick(InventoryClickEvent e){
-        ItemStack current = e.getCurrentItem();
-        if (current != null && isSpawnEgg(current.getType())){
+    public void onInvClick(InventoryClickEvent e) {
+        ItemStack it = e.getCurrentItem();
+        if (it != null && blocked(it.getType())) {
             e.setCancelled(true);
-            e.getWhoClicked().sendMessage(ChatColor.RED+"Яйца призыва отключены.");
+            e.getWhoClicked().sendMessage(ChatColor.RED + "Этот предмет запрещён.");
         }
     }
-
     @EventHandler(ignoreCancelled = true)
-    public void onInteract(PlayerInteractEvent e){
+    public void onInteract(PlayerInteractEvent e) {
         ItemStack hand = e.getItem();
-        if (hand != null && isSpawnEgg(hand.getType())){
+        if (hand != null && blocked(hand.getType())) {
             e.setCancelled(true);
-            e.getPlayer().sendMessage(ChatColor.RED+"Яйца призыва отключены.");
+            e.getPlayer().sendMessage(ChatColor.RED + "Этот предмет запрещён.");
         }
     }
 }

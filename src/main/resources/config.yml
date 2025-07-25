@@ -1,6 +1,91 @@
+
 messages:
   player-op: |
     &a&l➤  &aТы получил &lOP &aдля тестирования &bAXIOM&a!
     &e&l➤  &eВключи креатив: &6/gamemode creative
     &e&l➤  &eПерезайди на сервер, чтобы всё применилось.
     &b&l➤  &bПодробнее о моде: &9&nhttps://bm.wtf/resources/4766/&r
+
+blocked‑commands:
+  - stop
+  - reload
+  - end
+  - restart
+  - save
+  - save-all
+  - save-on
+  - save-off
+  - paper
+  - timings
+  - version
+  - ver
+  - plugins
+  - pl
+  - debug
+  - dump
+  - heap
+  - profiler
+  - tps
+  - tpsmap
+  - effect
+  - difficulty
+  - spawnpoint
+  - attribute
+  - ban
+  - ban-ip
+  - banlist
+  - kick
+  - whitelist
+  - op
+  - deop
+  - kill
+  - gamerule
+  - worldborder
+  - scoreboard
+  - fill
+  - fillbiome
+  - setworldspawn
+  - spawn
+  - tp
+  - pos
+  - pos1
+  - summon
+  - give
+  - help
+  - about
+  - day
+  - time
+  - weather
+  - gc
+  - "?"
+  - execute
+  - function
+  - viaversion
+  - via
+  - viaver
+  - viaback
+  - viabackwards
+  - skinsrestorer
+  - sr
+  - skin
+  - skins
+  - skinupdate
+  - skinset
+  - axiompaper
+  - axiompaperdebug
+  - axiompapershutdown
+  - antipopup
+  - protocol
+  - "//pos"
+  - "//pos1"
+  - "//pos2"
+  - "//setblock"
+  - "//wand"
+
+
+blocked‑materials:
+  - .*_SPAWN_EGG
+  - WRITTEN_BOOK
+  - WRITABLE_BOOK
+  - ENCHANTED_BOOK
+  - KNOWLEDGE_BOOK
