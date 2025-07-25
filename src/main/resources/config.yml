@@ -77,6 +77,7 @@ blocked‑commands:
   - antipopup
   - advancement
   - advancements
+  - clear
   - protocol
   - bossbar
   - "//pos"
