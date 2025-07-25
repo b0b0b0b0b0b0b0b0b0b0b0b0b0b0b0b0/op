@@ -93,3 +93,5 @@ blocked‑materials:
   - WRITABLE_BOOK
   - ENCHANTED_BOOK
   - KNOWLEDGE_BOOK
+  - .*POTION
+  - TIPPED_ARROW
