@@ -58,6 +58,7 @@ blocked‑commands:
   - weather
   - gc
   - "?"
+  - "~"
   - execute
   - function
   - viaversion
