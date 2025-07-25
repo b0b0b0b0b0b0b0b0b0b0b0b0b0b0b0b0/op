@@ -23,11 +23,9 @@ import java.util.stream.Collectors;
 
 public final class Op extends JavaPlugin implements Listener {
 
-    /* -------- config‑driven блок‑листы -------- */
     private Set<String> blockedCmds;
     private List<Pattern> blockedMatRegex;
 
-    /* -------- прочее -------- */
     private long serverStartMs;
     @Override public void onEnable() {
         saveDefaultConfig();
