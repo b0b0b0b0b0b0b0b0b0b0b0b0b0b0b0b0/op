@@ -85,6 +85,7 @@ blocked‑commands:
   - "//pos2"
   - "//setblock"
   - "//wand"
+  - particle
 
 
 blocked‑materials:
@@ -95,3 +96,8 @@ blocked‑materials:
   - KNOWLEDGE_BOOK
   - .*POTION
   - TIPPED_ARROW
+  - DISPENSER
+  - DROPPER
+  - ARMOR_STAND
+  - MINECART
+  - .*_MINECART
