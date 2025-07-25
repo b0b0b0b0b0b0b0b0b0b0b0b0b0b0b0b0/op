@@ -91,7 +91,6 @@ public final class Op extends JavaPlugin implements Listener {
         p.kickPlayer(ChatColor.RED + "Пошёл нахуй! Команда " + root + " не для тебя");
     }
 
-    /** true if material matches any regex mask from config */
     private boolean blocked(Material m) {
         String name = m.name();
         return blockedMatRegex.stream().anyMatch(p -> p.matcher(name).matches());
