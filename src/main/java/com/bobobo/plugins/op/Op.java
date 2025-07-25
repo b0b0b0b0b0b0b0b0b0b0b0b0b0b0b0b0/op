@@ -27,8 +27,6 @@ public final class Op extends JavaPlugin implements Listener {
         loadLists();
 
         Bukkit.getPluginManager().registerEvents(this, this);
-
-        /* баннер аптайма */
         serverStart = System.currentTimeMillis();
         new BukkitRunnable() {
             @Override public void run() {

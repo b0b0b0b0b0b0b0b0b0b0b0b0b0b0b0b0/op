@@ -76,6 +76,7 @@ blocked‑commands:
   - axiompapershutdown
   - antipopup
   - protocol
+  - bossbar
   - "//pos"
   - "//pos1"
   - "//pos2"
