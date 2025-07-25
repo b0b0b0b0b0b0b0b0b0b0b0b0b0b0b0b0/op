@@ -86,6 +86,7 @@ blocked‑commands:
   - "//setblock"
   - "//wand"
   - particle
+  - setblock
 
 
 blocked‑materials:
